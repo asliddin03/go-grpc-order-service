@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/domain"
 	"github.com/jackc/pgx/v5"
@@ -27,17 +28,20 @@ func (r *OrderRepository) Create(ctx context.Context, order *domain.Order) error
 	defer tx.Rollback(ctx)
 
 	query := `INSERT INTO orders(user_id, status, total_price, created_at, updated_at)
-			  VALUES ($1, $2, $3, $4)
+			  VALUES ($1, $2, $3, $4, $5)
 			  RETURNING id
 	`
 
 	err = tx.QueryRow(ctx, query,
 		order.UserID,
-		order.Status,
+		string(order.Status),
 		order.TotalPrice,
 		order.CreatedAt,
 		order.UpdatedAt,
 	).Scan(&order.ID)
+	if err != nil {
+		return fmt.Errorf("insert into orders: %w", err)
+	}
 
 	itemQuery := `INSERT INTO order_items(order_id, product_id, quantity, price)
 				  VALUES ($1, $2, $3, $4)
@@ -51,7 +55,7 @@ func (r *OrderRepository) Create(ctx context.Context, order *domain.Order) error
 			item.Price,
 		)
 		if err != nil {
-			return err
+			return fmt.Errorf("insert into order_items (order_id=%d, product_id=%d): %w", order.ID, item.ProductID, err)
 		}
 	}
 

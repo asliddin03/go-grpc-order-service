@@ -1,15 +1,45 @@
 package app
 
-import "log"
+import (
+	"context"
+	"log"
 
-type App struct{}
+	"github.com/asliddin03/go-grpc-order-service/order-service/internal/config"
+	postgresrepo "github.com/asliddin03/go-grpc-order-service/order-service/internal/repository/postgres"
+	"github.com/asliddin03/go-grpc-order-service/order-service/internal/storage"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type App struct {
+	config    *config.Config
+	postgres  *pgxpool.Pool
+	orderRepo *postgresrepo.OrderRepository
+}
 
 func New() *App {
 	return &App{}
 }
 
 func (a *App) Run() error {
-	log.Println("order server started")
+	ctx := context.Background()
 
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+	a.config = cfg
+
+	postgresPool, err := storage.NewPostgresPool(ctx, cfg.PostgresDSN)
+	if err != nil {
+		return err
+	}
+	defer postgresPool.Close()
+
+	a.postgres = postgresPool
+	a.orderRepo = postgresrepo.NewOrderRepository(postgresPool)
+
+	log.Println("order-service started")
+	log.Println("postgres connected")
+	log.Printf("order repository initialized: %T\n", a.orderRepo)
 	return nil
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/asliddin03/go-grpc-order-service/tree/main/order-service/internal/app"
+	"github.com/asliddin03/go-grpc-order-service/order-service/internal/app"
 )
 
 func main() {

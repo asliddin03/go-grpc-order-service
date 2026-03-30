@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/asliddin03/go-grpc-order-service/tree/main/order-service/internal/domain"
+	"github.com/asliddin03/go-grpc-order-service/order-service/internal/domain"
 )
 
 type AuthClient interface {

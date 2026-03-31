@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package order.v1;
+
+option go_package = "github.com/asliddin03/go-grpc-order-service/order-service/gen/order/v1;orderv1";
+
+service OrderService {
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+}
+
+message GetOrderRequest {
+  int64 order_id = 1;
+}
+
+message GetOrderResponse {
+  Order order = 1;
+}
+
+message ListOrdersRequest {
+  int64 user_id = 1;
+}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+}
+
+message Order {
+  int64 id = 1;
+  int64 user_id = 2;
+  string status = 3;
+  int64 total_price = 4;
+  // TODO google.protobuf.Timestamp
+  string created_at = 5;
+  string updated_at = 6;
+  repeated OrderItem items = 7;
+}
+
+message OrderItem {
+  int64 product_id = 1;
+  int32 quantity = 2;
+  int64 price = 3;
+}

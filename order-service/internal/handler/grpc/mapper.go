@@ -12,7 +12,7 @@ func toProtoOrder(order *domain.Order) *orderv1.Order {
 		return nil
 	}
 
-	items := make([]*orderv1.OrderItem, len(order.Items))
+	items := make([]*orderv1.OrderItem, 0, len(order.Items))
 	for _, item := range order.Items {
 		items = append(items, &orderv1.OrderItem{
 			ProductId: item.ProductID,

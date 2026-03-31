@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/asliddin03/go-grpc-order-service/auth-service/gen/auth/v1;authv1";
+
+service AuthService {
+  rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse);
+}
+
+message ValidateUserRequest {
+  int64 user_id = 1;
+}
+
+message ValidateUserResponse {
+  bool valid = 1;
+  int64 user_id = 2;
+  string email = 3;
+  string role = 4;
+}

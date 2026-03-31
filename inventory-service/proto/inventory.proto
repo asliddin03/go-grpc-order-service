@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package inventory.v1;
+
+option go_package = "github.com/asliddin03/go-grpc-order-service/inventory-service/gen/inventory/v1;inventoryv1";
+
+service InventoryService {
+  rpc GetProducts(GetProductsRequest) returns (GetProductsResponse);
+}
+
+message GetProductsRequest {
+  repeated int64 product_ids = 1;
+}
+
+message GetProductsResponse {
+  repeated Product products = 1;
+}
+
+message Product {
+  int64 product_id = 1;
+  int64 price = 2;
+  bool available = 3;
+}

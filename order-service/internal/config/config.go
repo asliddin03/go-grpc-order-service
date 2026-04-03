@@ -6,10 +6,8 @@ import (
 )
 
 type Config struct {
-	PostgresDSN             string
-	GRPCPort                string
-	AuthServiceAddress      string
-	InventoryServiceAddress string
+	PostgresDSN string
+	GRPCPort    string
 }
 
 func Load() (*Config, error) {
@@ -23,20 +21,8 @@ func Load() (*Config, error) {
 		grpcPort = "50051"
 	}
 
-	authServiceAddress := os.Getenv("AUTH_SERVICE_ADDRESS")
-	if authServiceAddress == "" {
-		authServiceAddress = "localhost:50052"
-	}
-
-	inventoryServiceAddress := os.Getenv("INventory_SERVICE_ADDRESS")
-	if inventoryServiceAddress == "" {
-		inventoryServiceAddress = "localhost:50053"
-	}
-
 	return &Config{
-		PostgresDSN:             postgresDSN,
-		GRPCPort:                grpcPort,
-		AuthServiceAddress:      authServiceAddress,
-		InventoryServiceAddress: inventoryServiceAddress,
+		PostgresDSN: postgresDSN,
+		GRPCPort:    grpcPort,
 	}, nil
 }

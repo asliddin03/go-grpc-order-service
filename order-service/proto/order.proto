@@ -5,23 +5,8 @@ package order.v1;
 option go_package = "github.com/asliddin03/go-grpc-order-service/order-service/gen/order/v1;orderv1";
 
 service OrderService {
-  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
   rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
   rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
-}
-
-message CreateOrderRequest {
-  int64 user_id = 1;
-  repeated CreateOrderItem items = 2;
-}
-
-message CreateOrderItem {
-  int64 product_id = 1;
-  int32 quantity = 2;
-}
-
-message CreateOrderResponse {
-  Order order = 1;
 }
 
 message GetOrderRequest {

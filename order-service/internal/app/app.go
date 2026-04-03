@@ -8,27 +8,23 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	"google.golang.org/grpc"
-
 	orderv1 "github.com/asliddin03/go-grpc-order-service/order-service/gen/order/v1"
-	"github.com/asliddin03/go-grpc-order-service/order-service/internal/client"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/config"
 	grpcHandler "github.com/asliddin03/go-grpc-order-service/order-service/internal/handler/grpc"
 	postgresrepo "github.com/asliddin03/go-grpc-order-service/order-service/internal/repository/postgres"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/service"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/storage"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/grpc"
 )
 
 type App struct {
-	config          *config.Config
-	postgres        *pgxpool.Pool
-	orderRepo       *postgresrepo.OrderRepository
-	authClient      *client.AuthClient
-	inventoryClient *client.InventoryClient
-	orderService    *service.OrderService
-	orderHandler    *grpcHandler.OrderHandler
-	grpcServer      *grpc.Server
+	config       *config.Config
+	postgres     *pgxpool.Pool
+	orderRepo    *postgresrepo.OrderRepository
+	orderService *service.OrderService
+	orderHandler *grpcHandler.OrderHandler
+	grpcServer   *grpc.Server
 }
 
 func New() *App {
@@ -51,26 +47,12 @@ func (a *App) Run() error {
 	a.postgres = postgresPool
 	defer a.postgres.Close()
 
-	authClient, err := client.NewAuthClient(cfg.AuthServiceAddress)
-	if err != nil {
-		return err
-	}
-	a.authClient = authClient
-	defer a.authClient.Close()
-
-	inventoryClient, err := client.NewInventoryClient(cfg.InventoryServiceAddress)
-	if err != nil {
-		return err
-	}
-	a.inventoryClient = inventoryClient
-	defer a.inventoryClient.Close()
-
 	orderRepo := postgresrepo.NewOrderRepository(postgresPool)
 	a.orderRepo = orderRepo
 
 	orderService := service.NewOrderService(
-		authClient,
-		inventoryClient,
+		nil,
+		nil,
 		orderRepo,
 	)
 	a.orderService = orderService
@@ -104,10 +86,16 @@ func (a *App) Run() error {
 	case err := <-errCh:
 		return err
 	case sig := <-stopCh:
-		log.Printf("received signal: %s\n", sig)
+		log.Printf("received signal %s\n", sig)
 		log.Println("shutting down gRPC server...")
 		grpcServer.GracefulStop()
 		log.Println("gRPC server stopped")
 		return nil
 	}
+
+	log.Println("order-service started")
+	log.Println("postgres connected")
+	log.Printf("order repository initialized: %T\n", a.orderRepo)
+	log.Printf("order service initialized: %T\n", a.orderService)
+	return nil
 }

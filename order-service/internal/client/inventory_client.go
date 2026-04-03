@@ -43,7 +43,7 @@ func (c *InventoryClient) GetProducts(ctx context.Context,
 		ProductIds: productIDs,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("inventory-service get products: %w", err)
 	}
 
 	result := make(map[int64]service.InventoryProduct, len(resp.GetProducts()))

@@ -7,7 +7,9 @@ import (
 	authv1 "github.com/asliddin03/go-grpc-order-service/auth-service/gen/auth/v1"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/domain"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type AuthClient struct {
@@ -42,7 +44,15 @@ func (c *AuthClient) ValidateUser(ctx context.Context, userID int64) error {
 		UserId: userID,
 	})
 	if err != nil {
-		return err
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound, codes.InvalidArgument:
+				return domain.ErrInvalidUserID
+			default:
+				return fmt.Errorf("auth-service validate user: %w", err)
+			}
+		}
+		return fmt.Errorf("auth-service validate user: %w", err)
 	}
 
 	if !resp.Valid {

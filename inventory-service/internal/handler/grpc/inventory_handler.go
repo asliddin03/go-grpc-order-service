@@ -5,6 +5,8 @@ import (
 
 	inventoryv1 "github.com/asliddin03/go-grpc-order-service/inventory-service/gen/inventory/v1"
 	"github.com/asliddin03/go-grpc-order-service/inventory-service/internal/service"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type InventoryHandler struct {
@@ -20,9 +22,7 @@ func NewInventoryHandler(inventoryService *service.InventoryService) *InventoryH
 
 func (h *InventoryHandler) GetProducts(ctx context.Context, req *inventoryv1.GetProductsRequest) (*inventoryv1.GetProductsResponse, error) {
 	if req == nil {
-		return &inventoryv1.GetProductsResponse{
-			Products: []*inventoryv1.Product{},
-		}, nil
+		return nil, status.Error(codes.InvalidArgument, "request is required")
 	}
 
 	products := h.inventoryService.GetProducts(req.GetProductIds())

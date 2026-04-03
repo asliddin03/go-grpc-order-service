@@ -28,7 +28,7 @@ func Load() (*Config, error) {
 		authServiceAddress = "localhost:50052"
 	}
 
-	inventoryServiceAddress := os.Getenv("INventory_SERVICE_ADDRESS")
+	inventoryServiceAddress := os.Getenv("INVENTORY_SERVICE_ADDRESS")
 	if inventoryServiceAddress == "" {
 		inventoryServiceAddress = "localhost:50053"
 	}

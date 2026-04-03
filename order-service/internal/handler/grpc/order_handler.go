@@ -38,6 +38,31 @@ func (h *OrderHandler) GetOrder(ctx context.Context,
 	}, nil
 }
 
+func (h *OrderHandler) CreateOrder(ctx context.Context,
+	req *orderv1.CreateOrderRequest) (*orderv1.CreateOrderResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	items := make([]domain.OrderItem, 0, len(req.GetItems()))
+	for _, item := range req.GetItems() {
+		items = append(items, domain.OrderItem{
+			ProductID: item.GetProductId(),
+			Quantity:  item.GetQuantity(),
+		})
+	}
+
+	order, err := h.orderService.CreateOrder(ctx, req.GetUserId(), items)
+	if err != nil {
+		return nil, mapError(err)
+	}
+
+	return &orderv1.CreateOrderResponse{
+		Order: toProtoOrder(order),
+	}, nil
+
+}
+
 func (h *OrderHandler) ListOrders(ctx context.Context,
 	req *orderv1.ListOrdersRequest) (*orderv1.ListOrdersResponse, error) {
 	if req == nil {
@@ -58,6 +83,14 @@ func mapError(err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvalidUserID):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, domain.ErrOrderItemsRequired):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, domain.ErrInvalidProductID):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, domain.ErrInvalidQuantity):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, domain.ErrProductUnavailable):
+		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, domain.ErrOrderNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	default:

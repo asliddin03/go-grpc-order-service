@@ -1,0 +1,7 @@
+go 1.25
+
+use (
+	auth-service
+	inventory-service
+	order-service
+)

@@ -15,6 +15,7 @@ import (
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/client"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/config"
 	grpcHandler "github.com/asliddin03/go-grpc-order-service/order-service/internal/handler/grpc"
+	"github.com/asliddin03/go-grpc-order-service/order-service/internal/interceptor"
 	postgresrepo "github.com/asliddin03/go-grpc-order-service/order-service/internal/repository/postgres"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/service"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/storage"
@@ -78,7 +79,12 @@ func (a *App) Run() error {
 	orderHandler := grpcHandler.NewOrderHandler(orderService)
 	a.orderHandler = orderHandler
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptor.UnaryRecoveryInterceptor,
+			interceptor.UnaryLoggingInterceptor,
+		),
+	)
 	a.grpcServer = grpcServer
 
 	orderv1.RegisterOrderServiceServer(grpcServer, orderHandler)

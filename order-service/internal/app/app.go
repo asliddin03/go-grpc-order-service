@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
@@ -20,6 +21,8 @@ import (
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/service"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/storage"
 )
+
+const shutdownTimeout = 5 * time.Second
 
 type App struct {
 	config          *config.Config
@@ -37,7 +40,7 @@ func New() *App {
 }
 
 func (a *App) Run() error {
-	ctx := context.Background()
+	startupCtx := context.Background()
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -45,7 +48,7 @@ func (a *App) Run() error {
 	}
 	a.config = cfg
 
-	postgresPool, err := storage.NewPostgresPool(ctx, cfg.PostgresDSN)
+	postgresPool, err := storage.NewPostgresPool(startupCtx, cfg.PostgresDSN)
 	if err != nil {
 		return err
 	}
@@ -111,9 +114,30 @@ func (a *App) Run() error {
 		return err
 	case sig := <-stopCh:
 		log.Printf("received signal: %s\n", sig)
-		log.Println("shutting down gRPC server...")
-		grpcServer.GracefulStop()
-		log.Println("gRPC server stopped")
-		return nil
+		return a.Shutdown()
 	}
+}
+
+func (a *App) Shutdown() error {
+	log.Println("shutting down application...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	done := make(chan struct{})
+
+	go func() {
+		a.grpcServer.GracefulStop()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		log.Println("grpc server stopped")
+	case <-shutdownCtx.Done():
+		log.Println("graceful shutdown timed out, forcing stop")
+		a.grpcServer.Stop()
+	}
+
+	return nil
 }

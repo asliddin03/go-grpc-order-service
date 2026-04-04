@@ -3,12 +3,15 @@ package client
 import (
 	"context"
 	"fmt"
+	"time"
 
 	inventoryv1 "github.com/asliddin03/go-grpc-order-service/inventory-service/gen/inventory/v1"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+const inventoryRequestTimeout = 2 * time.Second
 
 type InventoryClient struct {
 	conn   *grpc.ClientConn
@@ -39,7 +42,10 @@ func (c *InventoryClient) Close() error {
 
 func (c *InventoryClient) GetProducts(ctx context.Context,
 	productIDs []int64) (map[int64]service.InventoryProduct, error) {
-	resp, err := c.client.GetProducts(ctx, &inventoryv1.GetProductsRequest{
+	reqCtx, cancel := context.WithTimeout(ctx, inventoryRequestTimeout)
+	defer cancel()
+
+	resp, err := c.client.GetProducts(reqCtx, &inventoryv1.GetProductsRequest{
 		ProductIds: productIDs,
 	})
 	if err != nil {

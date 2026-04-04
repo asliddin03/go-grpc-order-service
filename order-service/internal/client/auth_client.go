@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"time"
 
 	authv1 "github.com/asliddin03/go-grpc-order-service/auth-service/gen/auth/v1"
 	"github.com/asliddin03/go-grpc-order-service/order-service/internal/domain"
@@ -11,6 +12,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
+
+const authRequestTimeout = time.Second * 2
 
 type AuthClient struct {
 	conn   *grpc.ClientConn
@@ -40,7 +43,10 @@ func (c *AuthClient) Close() error {
 }
 
 func (c *AuthClient) ValidateUser(ctx context.Context, userID int64) error {
-	resp, err := c.client.ValidateUser(ctx, &authv1.ValidateUserRequest{
+	reqCtx, cancel := context.WithTimeout(ctx, authRequestTimeout)
+	defer cancel()
+
+	resp, err := c.client.ValidateUser(reqCtx, &authv1.ValidateUserRequest{
 		UserId: userID,
 	})
 	if err != nil {

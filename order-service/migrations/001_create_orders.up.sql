@@ -4,5 +4,5 @@ CREATE TABLE orders (
     status TEXT NOT NULL,
     total_price BIGINT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
-    updated_up TIMESTAMPTZ NOT NULL
+    updated_at TIMESTAMPTZ NOT NULL
 );

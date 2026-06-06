@@ -66,8 +66,16 @@ func (s *OrderService) CreateOrder(
 
 	for _, item := range items {
 		product, ok := products[item.ProductID]
-		if !ok || !product.Available {
+		if !ok {
+			return nil, domain.ErrProductNotFound
+		}
+
+		if !product.Available {
 			return nil, domain.ErrProductUnavailable
+		}
+
+		if product.Price < 0 {
+			return nil, domain.ErrInvalidProductPrice
 		}
 
 		orderItem := domain.OrderItem{
@@ -100,7 +108,7 @@ func (s *OrderService) CreateOrder(
 
 func (s *OrderService) GetOrder(ctx context.Context, orderID int64) (*domain.Order, error) {
 	if orderID <= 0 {
-		return nil, domain.ErrOrderNotFound
+		return nil, domain.ErrInvalidOrderID
 	}
 
 	return s.orderRepository.GetByID(ctx, orderID)

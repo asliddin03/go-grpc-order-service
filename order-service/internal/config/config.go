@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -21,6 +22,10 @@ func Load() (*Config, error) {
 	grpcPort := os.Getenv("GRPC_PORT")
 	if grpcPort == "" {
 		grpcPort = "50051"
+	}
+
+	if _, err := strconv.Atoi(grpcPort); err != nil {
+		return nil, errors.New("GRPC_PORT must be a number")
 	}
 
 	authServiceAddress := os.Getenv("AUTH_SERVICE_ADDRESS")

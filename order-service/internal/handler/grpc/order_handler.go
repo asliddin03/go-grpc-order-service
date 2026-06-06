@@ -83,13 +83,19 @@ func mapError(err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvalidUserID):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, domain.ErrInvalidOrderID):
+		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, domain.ErrOrderItemsRequired):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, domain.ErrInvalidProductID):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, domain.ErrInvalidQuantity):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, domain.ErrProductNotFound):
+		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, domain.ErrProductUnavailable):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, domain.ErrInvalidProductPrice):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, domain.ErrOrderNotFound):
 		return status.Error(codes.NotFound, err.Error())

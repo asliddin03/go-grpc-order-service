@@ -17,7 +17,7 @@ func UnaryLoggingInterceptor(ctx context.Context, req any, info *grpc.UnaryServe
 
 	st, _ := status.FromError(err)
 	log.Printf(
-		"grpc method=%s code=%s duration=%s req=%v",
+		"grpc method=%s code=%s duration=%s err=%v",
 		info.FullMethod,
 		st.Code(),
 		time.Since(start),

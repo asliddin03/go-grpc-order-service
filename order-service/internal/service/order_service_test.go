@@ -228,3 +228,54 @@ func TestOrderService_ListOrders(t *testing.T) {
 	require.Len(t, orders, 2)
 	assert.Equal(t, expectedOrders, orders)
 }
+
+func TestOrderService_GetOrder_InvalidOrderID(t *testing.T) {
+	t.Parallel()
+
+	orderService := NewOrderService(
+		&fakeAuthClient{},
+		&fakeInventoryClient{},
+		&fakeOrderRepository{},
+	)
+
+	order, err := orderService.GetOrder(context.Background(), 0)
+
+	require.Error(t, err)
+	assert.ErrorIs(t, err, domain.ErrInvalidOrderID)
+	assert.Nil(t, order)
+}
+
+func TestOrderService_CreateOrder_InvalidProductPrice(t *testing.T) {
+	t.Parallel()
+
+	inventoryClient := &fakeInventoryClient{
+		getProductsFunc: func(ctx context.Context, productIDs []int64) (map[int64]InventoryProduct, error) {
+			return map[int64]InventoryProduct{
+				1: {
+					ProductID: 1,
+					Price:     -100,
+					Available: true,
+				},
+			}, nil
+		},
+	}
+
+	orderService := NewOrderService(
+		&fakeAuthClient{},
+		inventoryClient,
+		&fakeOrderRepository{},
+	)
+
+	items := []domain.OrderItem{
+		{
+			ProductID: 1,
+			Quantity:  2,
+		},
+	}
+
+	order, err := orderService.CreateOrder(context.Background(), 42, items)
+
+	require.Error(t, err)
+	assert.ErrorIs(t, err, domain.ErrInvalidProductPrice)
+	assert.Nil(t, order)
+}
